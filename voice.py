@@ -37,14 +37,14 @@ def roastme():
   print('ROAST ME')
   os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
   song_number = random.randint(1,5)
-  song = 'ffplay -autoexit -nodisp /home/pi/askjarvis/song-{name}.mp3 &'.format(name=song_number)
+  song = 'ffplay -autoexit -nodisp /home/pi/songs/song-{name}.mp3 &'.format(name=song_number)
   os.system(song)
 
 def playasong():
   print('PLAY A SONG')
   os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
   song_number = random.randint(1,5)
-  song = 'ffplay -autoexit -nodisp /home/pi/askjarvis/song-{name}.mp3 &'.format(name=song_number)
+  song = 'ffplay -autoexit -nodisp /home/pi/songs/song-{name}.mp3 &'.format(name=song_number)
   os.system(song)
 
 
