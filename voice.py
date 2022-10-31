@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
- #now = datetime.now()
- #current_time = now.strftime("%I:%M %p")
- #print(current_time)  
 
 from datetime import datetime
 
@@ -46,7 +43,11 @@ def playasong():
 def timenow():
   print('TIME NOW')
   os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
-  os.system('espeak 2:45PM')
+  now = datetime.now()
+  current_time = now.strftime("%I:%M %p")
+  print(current_time)
+  say_time = 'espeak -g 20 {name}'.format(name=current_time)  
+  os.system(say_time)
 
 
 def initialize():
