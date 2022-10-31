@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+ #now = datetime.now()
+ #current_time = now.strftime("%I:%M %p")
+ #print(current_time)  
 
 from datetime import datetime
 
@@ -15,30 +18,43 @@ ledPin = 12    # define ledPin
 def empty():
   pass
 
-
 def nothing():
+  print('--')
+
+def nosong():
   print('--')
 
 def on():
   print('ON')
+  song = 'ffplay -autoexit -nodisp /home/pi/songs/lightson.mp3 &'
+  os.system(song)
   GPIO.output(ledPin,1)
 
 def off():
   print('OFF')
+  song = 'ffplay -autoexit -nodisp /home/pi/songs/shutdown.mp3 &'
+  os.system(song)
   GPIO.output(ledPin,0)
   
-def timenow():
-  #now = datetime.now()
-  #current_time = now.strftime("%I:%M %p")
-  #print(current_time)  
+def stopplaying():
   os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
 
-def roastme():
-  print('ROAST ME')
-  os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
-  song_number = random.randint(1,5)
-  song = 'ffplay -autoexit -nodisp /home/pi/songs/song-{name}.mp3 &'.format(name=song_number)
+def chooseasong():
+  print('choose a song')
+  song = 'ffplay -autoexit -nodisp /home/pi/songs/choosenow.mp3 &'
   os.system(song)
+  global commands 
+  commands = {0:nosong, 18:bones, 17:moneyfornothing, 19:wellerman, 21:goback, 20:jurassicpark}
+  initialize('GROUP2')
+
+def goback():
+  print('Go Back')
+  os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
+  song = 'ffplay -autoexit -nodisp /home/pi/songs/goback.mp3 &'
+  os.system(song)
+  global commands 
+  commands = {0:nothing, 18:off, 17:on, 19:stopplaying, 21:chooseasong, 20:playasong}
+  initialize('GROUP1')
 
 def playasong():
   print('PLAY A SONG')
@@ -47,38 +63,81 @@ def playasong():
   song = 'ffplay -autoexit -nodisp /home/pi/songs/song-{name}.mp3 &'.format(name=song_number)
   os.system(song)
 
+def bones():
+  print('bones')
+  os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
+  #song = 'ffplay -autoexit -nodisp /home/pi/songs/song-10.mp3 &'
+  #os.system(song)
+
+def moneyfornothing():
+  print('Money for nothing')
+  os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
+  #song = 'ffplay -autoexit -nodisp /home/pi/songs/song-1.mp3 &'
+  #os.system(song)
+
+def wellerman():
+  print('Wellerman')
+  os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
+  #song = 'ffplay -autoexit -nodisp /home/pi/songs/song-10.mp3 &'
+  #os.system(song)
+
+def jurassicpark():
+  print('Jurassic park')
+  os.system("kill `ps -ef |grep ffplay |grep -v grep | awk '{print $2}'`")
+  #song = 'ffplay -autoexit -nodisp /home/pi/songs/song-8.mp3 &'
+  #os.system(song)
+
+def initialize(command):
+  global ser
+  # serial settings
+  try: ser
+  except NameError: print('Serial port not defined..........................................')
+  else: ser.close()
+
+  ser = serial.Serial(
+      port='/dev/ttyUSB0',
+      baudrate=9600,
+      parity=serial.PARITY_NONE,
+      stopbits=serial.STOPBITS_ONE,
+      bytesize=serial.EIGHTBITS,
+      timeout=1
+  )
+  ser.flushInput()
+
+  # run twice to make sure it's in the correct mode
+  for i in range(2):
+    ser.write(serial.to_bytes([0x00])) # set speech module to waiting state
+    time.sleep(0.5)
+    ser.write(serial.to_bytes([0xAA])) # set speech module to waiting state
+    time.sleep(0.5)
+    
+    if command == 'GROUP1':
+      ser.write(serial.to_bytes([0x21])) 
+    else:
+      print('Group2 loaded')
+      ser.write(serial.to_bytes([0x22])) 
+      
+    time.sleep(0.5)
+  ser.flushInput()
+  print('init complete')
+
+
 
 if __name__ == '__main__':
-    # integers mapped to voice command functions
-    commands = {0:nothing, 18:off, 17:on, 19:timenow, 21:roastme, 20:playasong}
-    # serial settings
-    ser = serial.Serial(
-        port='/dev/ttyUSB0',
-        baudrate=9600,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        bytesize=serial.EIGHTBITS,
-        timeout=1
-    )
-    ser.flushInput()
-    # run twice to make sure it's in the correct mode
-    for i in range(2):
-      ser.write(serial.to_bytes([0x00])) # set speech module to waiting state
-      time.sleep(0.5)
-      ser.write(serial.to_bytes([0xAA])) # set speech module to waiting state
-      time.sleep(0.5)
-      ser.write(serial.to_bytes([0x21])) # import group 1 and await voice input
-      time.sleep(0.5)
-    print('init complete')
-    GPIO.setmode(GPIO.BOARD)      # use PHYSICAL GPIO Numbering
-    GPIO.setup(ledPin, GPIO.OUT)   # set ledPin to OUTPUT mode
+   global ser
 
-    try:
-      while True:
-        data_byte = ser.read() # read serial data (one byte)
-        int_val = int.from_bytes(data_byte, byteorder='big') # convert to integer
-        print('=========')
-        print(int_val)
-        commands[int_val]() # call voice command function
-    except KeyboardInterrupt:
-      print('Exiting Script')
+   global commands 
+   commands = {0:nothing, 18:off, 17:on, 19:stopplaying, 21:chooseasong, 20:playasong}
+   initialize('GROUP1')
+   GPIO.setmode(GPIO.BOARD)      # use PHYSICAL GPIO Numbering
+   GPIO.setup(ledPin, GPIO.OUT)   # set ledPin to OUTPUT mode
+
+   try:
+     while True:
+       data_byte = ser.read() # read serial data (one byte)
+       int_val = int.from_bytes(data_byte, byteorder='big') # convert to integer
+       print('=========')
+       print(commands[int_val])
+       commands[int_val]() # call voice command function
+   except KeyboardInterrupt:
+     print('Exiting Script')
